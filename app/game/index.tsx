@@ -58,7 +58,7 @@ export default function GameScreen() {
 
   useEffect(() => {
     headerY.value = withSpring(0, { damping: 15 });
-    
+
     if (gameMode === 'local') {
       startGame('local');
       gameOpacity.value = withTiming(1, { duration: 300 });
@@ -70,11 +70,11 @@ export default function GameScreen() {
     if (isGameOver && winner !== null) {
       const timer = setTimeout(() => {
         setShowResult(true);
-        
+
         // Calculate result and update stats
         const gameDuration = gameStartTime ? Date.now() - gameStartTime : 0;
         let resultType: 'win' | 'loss' | 'draw' = 'draw';
-        
+
         if (winner !== 'draw') {
           if (gameMode === 'ai') {
             resultType = winner === playerSymbol ? 'win' : 'loss';
@@ -82,7 +82,7 @@ export default function GameScreen() {
             resultType = 'win'; // In local mode, someone always wins
           }
         }
-        
+
         const result: GameResult = {
           id: Date.now().toString(),
           date: new Date().toISOString(),
@@ -93,10 +93,9 @@ export default function GameScreen() {
           moves: moveCount,
           duration: gameDuration,
         };
-        
+
         updateStatistics(result);
       }, 1000);
-
       return () => clearTimeout(timer);
     }
   }, [isGameOver, winner]);
@@ -104,7 +103,7 @@ export default function GameScreen() {
   const handleStartGame = useCallback(() => {
     gameHaptics.tap(settings.hapticEnabled);
     setupOpacity.value = withTiming(0, { duration: 200 });
-    
+
     setTimeout(() => {
       startGame('ai', selectedDifficulty, selectedSymbol);
       setPhase('playing');
@@ -120,6 +119,7 @@ export default function GameScreen() {
   const handleGoHome = useCallback(() => {
     setShowResult(false);
     router.back();
+    resetGame()
   }, []);
 
   const handleBack = useCallback(() => {
@@ -220,7 +220,7 @@ export default function GameScreen() {
         <Animated.View style={[styles.gameContainer, gameStyle]}>
           <GameStatus />
           <GameBoard />
-          
+
           {/* Game Controls */}
           <View style={styles.gameControls}>
             <Button
