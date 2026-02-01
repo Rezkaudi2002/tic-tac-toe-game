@@ -10,7 +10,7 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 
-import { useGameStore } from '@/stores/game-store';
+import { useGameStore, GameResult } from '@/stores/game-store';
 import { themes } from '@/constants/themes';
 import { IconButton } from '@/components/button';
 
@@ -19,8 +19,8 @@ export default function StatsScreen() {
   const { settings, statistics, gameHistory, points } = useGameStore();
   const currentTheme = themes[settings.themeId] || themes.neonNights;
 
-  const winRate = statistics.totalGames > 0 
-    ? Math.round((statistics.wins / statistics.totalGames) * 100) 
+  const winRate = statistics.totalGames > 0
+    ? Math.round((statistics.wins / statistics.totalGames) * 100)
     : 0;
 
   const avgMoves = statistics.totalGames > 0
@@ -153,7 +153,7 @@ export default function StatsScreen() {
             <View style={[styles.divider, { backgroundColor: currentTheme.colors.border }]} />
             <PerformanceStat
               label="Fastest Win"
-              value={statistics.fastestWin ? `${(statistics.fastestWin / 1000).toFixed(1)}s` : '--'}
+              value={statistics.fastestWin && statistics.fastestWin !== Infinity ? `${(statistics.fastestWin / 1000).toFixed(1)}s` : '--'}
               icon="⚡"
               theme={currentTheme}
             />
@@ -271,12 +271,21 @@ function PerformanceStat({ label, value, icon, theme }: PerformanceStatProps) {
 
 // Game History Item Component
 interface GameHistoryItemProps {
-  game: any;
+  game: GameResult;
   theme: any;
   index: number;
 }
 
 function GameHistoryItem({ game, theme, index }: GameHistoryItemProps) {
+  // Derive result from winner property
+  const getResult = (): 'win' | 'loss' | 'draw' => {
+    if (game.winner === 'draw') return 'draw';
+    if (game.winner === game.playerSymbol) return 'win';
+    return 'loss';
+  };
+
+  const result = getResult();
+
   const resultColors = {
     win: theme.colors.success,
     loss: theme.colors.error,
@@ -310,10 +319,10 @@ function GameHistoryItem({ game, theme, index }: GameHistoryItemProps) {
         { backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.small },
       ]}
     >
-      <Text style={styles.historyIcon}>{resultIcons[game.result as keyof typeof resultIcons]}</Text>
+      <Text style={styles.historyIcon}>{resultIcons[result]}</Text>
       <View style={styles.historyContent}>
-        <Text style={[styles.historyResult, { color: resultColors[game.result as keyof typeof resultColors] }]}>
-          {game.result.charAt(0).toUpperCase() + game.result.slice(1)}
+        <Text style={[styles.historyResult, { color: resultColors[result] }]}>
+          {result.charAt(0).toUpperCase() + result.slice(1)}
         </Text>
         <Text style={[styles.historyDetail, { color: theme.colors.textSecondary }]}>
           {game.mode === 'ai' ? `vs AI (${game.difficulty})` : 'Local Game'} • {game.moves} moves
