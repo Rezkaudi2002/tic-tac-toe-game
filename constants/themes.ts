@@ -352,9 +352,9 @@ export const symbolStyles: Record<SymbolStyleKey, SymbolStyle> = {
   classic: { id: 'classic', name: 'Classic', x: '✕', o: '○', isPremium: false },
   rounded: { id: 'rounded', name: 'Rounded', x: '✖', o: '●', isPremium: false },
   sharp: { id: 'sharp', name: 'Sharp', x: '╳', o: '◆', isPremium: false },
-  dots: { id: 'dots', name: 'Dots', x: '⊗', o: '⊙', isPremium: true },
-  emoji: { id: 'emoji', name: 'Emoji', x: '⚔️', o: '🛡️', isPremium: true },
-  minimal: { id: 'minimal', name: 'Minimal', x: '—', o: '|', isPremium: true },
+  dots: { id: 'dots', name: 'Dots', x: '⊗', o: '⊙', isPremium: false },
+  emoji: { id: 'emoji', name: 'Emoji', x: '⚔️', o: '🛡️', isPremium: false },
+  minimal: { id: 'minimal', name: 'Minimal', x: '—', o: '|', isPremium: false },
 };
 
 export const defaultTheme = themes.neonNights;

@@ -1,23 +1,24 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Dimensions, Pressable, Text } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
-  withSequence,
-  withDelay,
   withRepeat,
-  withTiming,
-  interpolate,
-  Extrapolation,
+  withSequence,
+  withSpring,
+  withTiming
 } from 'react-native-reanimated';
-import { useGameStore, Player } from '../stores/game-store';
-import { gameHaptics } from '../utils/audio';
+import { Player, useGameStore } from '../stores/game-store';
 import { getAIMove } from '../utils/ai';
+import { gameHaptics } from '../utils/audio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BOARD_SIZE = Math.min(SCREEN_WIDTH - 48, 360);
-const CELL_SIZE = (BOARD_SIZE - 16) / 3;
+const CELL_SIZE = (BOARD_SIZE - 32) / 3;
+
+console.log(BOARD_SIZE, CELL_SIZE);
 
 interface CellProps {
   index: number;
@@ -30,7 +31,7 @@ interface CellProps {
 function Cell({ index, value, isWinning, onPress, disabled }: CellProps) {
   const theme = useGameStore((state) => state.getTheme());
   const symbolStyle = useGameStore((state) => state.getSymbolStyle());
-  
+
   const scale = useSharedValue(0);
   const pulse = useSharedValue(1);
   const pressScale = useSharedValue(1);
@@ -115,8 +116,8 @@ function Cell({ index, value, isWinning, onPress, disabled }: CellProps) {
           {
             width: CELL_SIZE,
             height: CELL_SIZE,
-            backgroundColor: isWinning 
-              ? `${theme.colors.winHighlight}20` 
+            backgroundColor: isWinning
+              ? `${theme.colors.winHighlight}20`
               : theme.colors.surface,
             borderRadius: theme.borderRadius.medium,
             borderWidth: isWinning ? 2 : 0,
@@ -170,10 +171,10 @@ export function GameBoard() {
       !isAiThinking
     ) {
       setAiThinking(true);
-      
+
       // Add delay to make AI feel more natural
       const delay = Math.random() * 500 + 300;
-      
+
       const timeout = setTimeout(async () => {
         const moveIndex = getAIMove(board, aiSymbol, difficulty);
         makeMove(moveIndex);
@@ -202,9 +203,9 @@ export function GameBoard() {
   };
 
   const isPlayerTurn = gameMode === 'ai' ? currentPlayer === playerSymbol : true;
-  const isDisabled = 
-    gamePhase !== 'playing' || 
-    winner !== null || 
+  const isDisabled =
+    gamePhase !== 'playing' ||
+    winner !== null ||
     (gameMode === 'ai' && !isPlayerTurn) ||
     isAiThinking;
 

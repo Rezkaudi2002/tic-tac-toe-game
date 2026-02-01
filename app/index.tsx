@@ -1,26 +1,25 @@
+import { useGameStore } from '@/stores/game-store';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   Dimensions,
   Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
-  withTiming,
   withSpring,
-  withDelay,
+  withTiming,
 } from 'react-native-reanimated';
-import { useRouter } from 'expo-router';
-import { useGameStore } from '@/stores/game-store';
-import { Button } from '@/components/button';
-import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -495,7 +494,7 @@ const styles = StyleSheet.create({
   },
   glowContainer: {
     position: 'absolute',
-    top: 0,
+    top: -16,
   },
   glow: {
     width: 120,
@@ -504,18 +503,18 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   logo: {
-    marginBottom: 16,
+    marginBottom: 36,
   },
   logoGrid: {
-    width: 100,
-    height: 100,
+    width: 82,
+    height: 82,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: 2,
   },
   logoCell: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
