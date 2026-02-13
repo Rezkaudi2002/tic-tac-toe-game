@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useGameStore, GameResult, GameMode } from '@/stores/game-store';
+import { useGameStore, GameMode } from '@/stores/game-store';
 import { themes, symbolStyles, SymbolStyleKey } from '@/constants/themes';
 import { Difficulty, Player } from '@/constants/game';
 import { GameBoard } from '@/components/game-board';
@@ -22,7 +22,7 @@ import { gameHaptics } from '@/utils/audio';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-type GamePhase = 'setup' | 'playing';
+type LocalPhase = 'setup' | 'playing';
 
 export default function GameScreen() {
   const router = useRouter();
@@ -37,7 +37,6 @@ export default function GameScreen() {
     difficulty,
     startGame,
     resetGame,
-    updateStatistics,
     gameStartTime,
     moveCount,
   } = useGameStore();
@@ -46,7 +45,7 @@ export default function GameScreen() {
   const symbols = symbolStyles[settings.symbolStyleId as SymbolStyleKey] || symbolStyles.classic;
   const isGameOver = gamePhase === 'finished' || winner !== null;
 
-  const [phase, setPhase] = useState<GamePhase>(gameMode === 'ai' ? 'setup' : 'playing');
+  const [localPhase, setLocalPhase] = useState<LocalPhase>(gameMode === 'ai' ? 'setup' : 'playing');
   const [showResult, setShowResult] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>(difficulty);
   const [selectedSymbol, setSelectedSymbol] = useState<Player>('X');
@@ -65,36 +64,12 @@ export default function GameScreen() {
     }
   }, []);
 
-  // Handle game over
+  // Handle game over — only show result modal, do NOT update stats
+  // (stats are already updated inside makeMove in the store)
   useEffect(() => {
     if (isGameOver && winner !== null) {
       const timer = setTimeout(() => {
         setShowResult(true);
-
-        // Calculate result and update stats
-        const gameDuration = gameStartTime ? Date.now() - gameStartTime : 0;
-        let resultType: 'win' | 'loss' | 'draw' = 'draw';
-
-        if (winner !== 'draw') {
-          if (gameMode === 'ai') {
-            resultType = winner === playerSymbol ? 'win' : 'loss';
-          } else {
-            resultType = 'win'; // In local mode, someone always wins
-          }
-        }
-
-        const result: GameResult = {
-          id: Date.now().toString(),
-          date: new Date().toISOString(),
-          mode: gameMode as GameMode,
-          difficulty: gameMode === 'ai' ? difficulty : undefined,
-          winner: winner as Player | 'draw',
-          playerSymbol: playerSymbol as Player,
-          moves: moveCount,
-          duration: gameDuration,
-        };
-
-        updateStatistics(result);
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -106,7 +81,7 @@ export default function GameScreen() {
 
     setTimeout(() => {
       startGame('ai', selectedDifficulty, selectedSymbol);
-      setPhase('playing');
+      setLocalPhase('playing');
       gameOpacity.value = withDelay(100, withTiming(1, { duration: 300 }));
     }, 200);
   }, [selectedDifficulty, selectedSymbol, settings.hapticEnabled]);
@@ -118,11 +93,13 @@ export default function GameScreen() {
 
   const handleGoHome = useCallback(() => {
     setShowResult(false);
+    // Reset BEFORE navigating so the store is clean
+    resetGame();
     router.back();
-    resetGame()
   }, []);
 
   const handleBack = useCallback(() => {
+    resetGame();
     router.back();
   }, []);
 
@@ -154,7 +131,7 @@ export default function GameScreen() {
       </Animated.View>
 
       {/* Setup Phase (AI only) */}
-      {phase === 'setup' && gameMode === 'ai' && (
+      {localPhase === 'setup' && gameMode === 'ai' && (
         <Animated.View style={[styles.setupContainer, setupStyle]}>
           {/* Difficulty Selection */}
           <View style={styles.section}>
@@ -216,7 +193,7 @@ export default function GameScreen() {
       )}
 
       {/* Game Phase */}
-      {phase === 'playing' && (
+      {localPhase === 'playing' && (
         <Animated.View style={[styles.gameContainer, gameStyle]}>
           <GameStatus />
           <GameBoard />

@@ -242,10 +242,10 @@ export const useGameStore = create<GameState>()(
         });
 
         if (winner !== null) {
-          const duration = state.gameStartTime 
-            ? Math.floor((Date.now() - state.gameStartTime) / 1000) 
+          const duration = state.gameStartTime
+            ? Date.now() - state.gameStartTime
             : 0;
-          
+
           const result: GameResult = {
             id: Date.now().toString(),
             date: new Date().toISOString(),
@@ -280,7 +280,7 @@ export const useGameStore = create<GameState>()(
       },
 
       setPhase: (phase) => set({ gamePhase: phase }),
-      
+
       setAiThinking: (thinking) => set({ isAiThinking: thinking }),
 
       setTheme: (themeId) => {
@@ -336,14 +336,14 @@ export const useGameStore = create<GameState>()(
             currentStreak: newStreak,
             bestStreak: Math.max(state.statistics.bestStreak, newStreak),
             totalMoves: state.statistics.totalMoves + result.moves,
-            fastestWin: isWin 
+            fastestWin: isWin
               ? Math.min(state.statistics.fastestWin, result.duration)
               : state.statistics.fastestWin,
             aiWins: result.mode === 'ai' && isWin && result.difficulty
               ? {
-                  ...state.statistics.aiWins,
-                  [result.difficulty]: state.statistics.aiWins[result.difficulty] + 1,
-                }
+                ...state.statistics.aiWins,
+                [result.difficulty]: state.statistics.aiWins[result.difficulty] + 1,
+              }
               : state.statistics.aiWins,
             lastPlayed: result.date,
           };
@@ -413,8 +413,8 @@ export const useGameStore = create<GameState>()(
               shouldUnlock = stats.aiWins.impossible >= 1;
               break;
             case 'speed_demon':
-              progress = stats.fastestWin <= 10 ? 1 : 0;
-              shouldUnlock = stats.fastestWin <= 10;
+              progress = stats.fastestWin <= 10000 ? 1 : 0;
+              shouldUnlock = stats.fastestWin <= 10000;
               break;
             case 'perfectionist':
               progress = stats.losses === 0 ? Math.min(stats.wins, 10) : 0;
@@ -443,12 +443,12 @@ export const useGameStore = create<GameState>()(
       generateDailyChallenge: () => {
         const today = new Date().toISOString().split('T')[0];
         const state = get();
-        
+
         if (state.dailyChallenge?.date === today) return;
 
         const types: DailyChallenge['type'][] = ['win_streak', 'no_loss', 'fast_win', 'beat_ai'];
         const type = types[Math.floor(Math.random() * types.length)];
-        
+
         let target = 3;
         let reward = 25;
         let difficulty: Difficulty | undefined;
@@ -493,9 +493,8 @@ export const useGameStore = create<GameState>()(
         if (!state.dailyChallenge || state.dailyChallenge.completed) return;
 
         const challenge = state.dailyChallenge;
-        const stats = state.statistics;
         const lastResult = state.gameHistory[0];
-        
+
         if (!lastResult) return;
 
         let progress = challenge.progress;
@@ -510,7 +509,7 @@ export const useGameStore = create<GameState>()(
             progress = isLoss ? 0 : progress + 1;
             break;
           case 'fast_win':
-            progress = isWin && lastResult.duration <= 15 ? 1 : progress;
+            progress = isWin && lastResult.duration <= 15000 ? 1 : progress;
             break;
           case 'beat_ai':
             if (lastResult.mode === 'ai' && isWin && lastResult.difficulty === challenge.difficulty) {
@@ -523,15 +522,15 @@ export const useGameStore = create<GameState>()(
 
         set((state) => ({
           dailyChallenge: { ...challenge, progress, completed },
-          points: completed && !challenge.completed 
-            ? state.points + challenge.reward 
+          points: completed && !challenge.completed
+            ? state.points + challenge.reward
             : state.points,
         }));
       },
 
       getTheme: () => themes[get().settings.themeId] || defaultTheme,
-      
-      getSymbolStyle: () => 
+
+      getSymbolStyle: () =>
         symbolStyles[get().settings.symbolStyleId as keyof typeof symbolStyles] || defaultSymbolStyle,
     }),
     {

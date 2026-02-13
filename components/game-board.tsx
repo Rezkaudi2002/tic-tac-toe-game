@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Dimensions, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -17,8 +17,6 @@ import { gameHaptics } from '../utils/audio';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BOARD_SIZE = Math.min(SCREEN_WIDTH - 48, 360);
 const CELL_SIZE = (BOARD_SIZE - 32) / 3;
-
-console.log(BOARD_SIZE, CELL_SIZE);
 
 interface CellProps {
   index: number;
@@ -161,6 +159,10 @@ export function GameBoard() {
   const theme = useGameStore((state) => state.getTheme());
   const aiSymbol = playerSymbol === 'X' ? 'O' : 'X';
 
+  // Use a ref to track if AI is already working, so we don't
+  // put isAiThinking in the dependency array (which would cancel the timeout)
+  const aiThinkingRef = useRef(false);
+
   // AI move logic
   useEffect(() => {
     if (
@@ -168,23 +170,44 @@ export function GameBoard() {
       gamePhase === 'playing' &&
       winner === null &&
       currentPlayer === aiSymbol &&
-      !isAiThinking
+      !aiThinkingRef.current
     ) {
+      aiThinkingRef.current = true;
       setAiThinking(true);
 
       // Add delay to make AI feel more natural
       const delay = Math.random() * 500 + 300;
 
       const timeout = setTimeout(async () => {
-        const moveIndex = getAIMove(board, aiSymbol, difficulty);
-        makeMove(moveIndex);
+        const state = useGameStore.getState();
+        // Double-check state is still valid before making AI move
+        if (
+          state.gamePhase === 'playing' &&
+          state.winner === null &&
+          state.currentPlayer === aiSymbol
+        ) {
+          const moveIndex = getAIMove(state.board, aiSymbol, state.difficulty);
+          makeMove(moveIndex);
+        }
+        aiThinkingRef.current = false;
         setAiThinking(false);
         await gameHaptics.move(settings.hapticEnabled);
       }, delay);
 
-      return () => clearTimeout(timeout);
+      return () => {
+        clearTimeout(timeout);
+        aiThinkingRef.current = false;
+        setAiThinking(false);
+      };
     }
-  }, [currentPlayer, gamePhase, winner, gameMode, isAiThinking]);
+  }, [currentPlayer, gamePhase, winner, gameMode, aiSymbol]);
+
+  // Reset ref when game resets
+  useEffect(() => {
+    if (gamePhase === 'playing' && winner === null && board.every(c => c === null)) {
+      aiThinkingRef.current = false;
+    }
+  }, [board, gamePhase, winner]);
 
   const handleCellPress = async (index: number) => {
     if (
