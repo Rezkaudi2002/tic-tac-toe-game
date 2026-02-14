@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Switch, ScrollView, Pressable, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useGameStore } from '@/stores/game-store';
 import { themes } from '@/constants/themes';
 import { IconButton } from '@/components/button';
+import { haptics, soundManager } from '@/utils/audio';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -18,6 +19,33 @@ export default function SettingsScreen() {
   } = useGameStore();
 
   const currentTheme = themes[settings.themeId] || themes.neonNights;
+
+  const handleToggleSound = () => {
+    toggleSound();
+    // Update the sound manager immediately
+    const newValue = !settings.soundEnabled;
+    soundManager.setEnabled(newValue);
+    // Play a confirmation sound if turning ON
+    if (newValue) {
+      soundManager.playTap();
+    }
+  };
+
+  const handleToggleMusic = () => {
+    const newValue = !settings.musicEnabled;
+    toggleMusic();
+    // Directly tell soundManager to start/stop music right now
+    soundManager.setMusicEnabled(newValue);
+  };
+
+  const handleToggleHaptic = () => {
+    toggleHaptic();
+    // Give immediate haptic feedback when turning ON so the user feels it works
+    const newValue = !settings.hapticEnabled;
+    if (newValue) {
+      haptics.success();
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.colors.background }]}>
@@ -38,7 +66,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: currentTheme.colors.textSecondary }]}>
             Audio
           </Text>
-          
+
           <SettingRow
             icon="volume-high"
             title="Sound Effects"
@@ -47,7 +75,7 @@ export default function SettingsScreen() {
           >
             <Switch
               value={settings.soundEnabled}
-              onValueChange={toggleSound}
+              onValueChange={handleToggleSound}
               trackColor={{
                 false: currentTheme.colors.surfaceLight,
                 true: currentTheme.colors.primary,
@@ -64,7 +92,7 @@ export default function SettingsScreen() {
           >
             <Switch
               value={settings.musicEnabled}
-              onValueChange={toggleMusic}
+              onValueChange={handleToggleMusic}
               trackColor={{
                 false: currentTheme.colors.surfaceLight,
                 true: currentTheme.colors.primary,
@@ -79,16 +107,19 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: currentTheme.colors.textSecondary }]}>
             Feedback
           </Text>
-          
+
           <SettingRow
             icon="phone-portrait"
             title="Haptic Feedback"
-            description="Vibrate on moves and events"
+            description={Platform.OS === 'web'
+              ? 'Not available on web'
+              : 'Vibrate on moves and events'}
             theme={currentTheme}
           >
             <Switch
               value={settings.hapticEnabled}
-              onValueChange={toggleHaptic}
+              onValueChange={handleToggleHaptic}
+              disabled={Platform.OS === 'web'}
               trackColor={{
                 false: currentTheme.colors.surfaceLight,
                 true: currentTheme.colors.primary,
@@ -103,7 +134,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: currentTheme.colors.textSecondary }]}>
             Appearance
           </Text>
-          
+
           <Pressable onPress={() => router.push('/themes')}>
             <SettingRow
               icon="color-palette"
@@ -121,7 +152,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: currentTheme.colors.textSecondary }]}>
             About
           </Text>
-          
+
           <SettingRow
             icon="information-circle"
             title="Version"

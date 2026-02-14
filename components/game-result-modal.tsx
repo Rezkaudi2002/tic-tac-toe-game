@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useGameStore } from '../stores/game-store';
 import { Button } from './button';
-import { gameHaptics } from '../utils/audio';
+import { gameHaptics, soundManager } from '../utils/audio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -43,8 +43,8 @@ export function GameResultModal({
         stiffness: 200,
       });
 
-      // Trigger haptics based on result
-      const triggerHaptics = async () => {
+      // Trigger haptics and sounds based on result
+      const triggerFeedback = async () => {
         const isWin =
           gameMode === 'ai'
             ? winner === playerSymbol
@@ -54,14 +54,17 @@ export function GameResultModal({
 
         if (isWin) {
           await gameHaptics.win(settings.hapticEnabled);
+          await soundManager.playWin();
         } else if (isLoss) {
           await gameHaptics.lose(settings.hapticEnabled);
+          await soundManager.playLose();
         } else {
           await gameHaptics.draw(settings.hapticEnabled);
+          await soundManager.playDraw();
         }
       };
 
-      triggerHaptics();
+      triggerFeedback();
 
       // Confetti animation for wins
       const isWin =

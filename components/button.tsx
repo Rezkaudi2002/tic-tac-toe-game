@@ -13,7 +13,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useGameStore } from '../stores/game-store';
-import { gameHaptics } from '../utils/audio';
+import { gameHaptics, soundManager } from '../utils/audio';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -60,6 +60,7 @@ export function Button({
   const handlePress = async () => {
     if (disabled || loading) return;
     await gameHaptics.buttonPress(hapticEnabled);
+    await soundManager.playTap();
     onPress();
   };
 
@@ -204,6 +205,7 @@ export function IconButton({
   const handlePress = async () => {
     if (disabled) return;
     await gameHaptics.tap(hapticEnabled);
+    await soundManager.playTap();
     onPress();
   };
 

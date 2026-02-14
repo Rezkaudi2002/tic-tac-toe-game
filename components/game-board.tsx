@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Player, useGameStore } from '../stores/game-store';
 import { getAIMove } from '../utils/ai';
-import { gameHaptics } from '../utils/audio';
+import { gameHaptics, soundManager } from '../utils/audio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BOARD_SIZE = Math.min(SCREEN_WIDTH - 48, 360);
@@ -188,6 +188,8 @@ export function GameBoard() {
         ) {
           const moveIndex = getAIMove(state.board, aiSymbol, state.difficulty);
           makeMove(moveIndex);
+          // Play move sound for AI move
+          await soundManager.playMove();
         }
         aiThinkingRef.current = false;
         setAiThinking(false);
@@ -222,6 +224,7 @@ export function GameBoard() {
     const success = makeMove(index);
     if (success) {
       await gameHaptics.move(settings.hapticEnabled);
+      await soundManager.playMove();
     }
   };
 

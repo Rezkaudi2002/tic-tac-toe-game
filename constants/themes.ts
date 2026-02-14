@@ -171,7 +171,7 @@ export const themes: Record<string, Theme> = {
     id: 'midnightMode',
     name: 'Midnight Mode',
     description: 'Deep dark theme for night owls',
-    isPremium: true,
+    isPremium: false,
     colors: {
       primary: '#8b5cf6',
       secondary: '#06b6d4',
@@ -213,7 +213,7 @@ export const themes: Record<string, Theme> = {
     id: 'enchantedForest',
     name: 'Enchanted Forest',
     description: 'Magical purple and cyan fantasy theme',
-    isPremium: true,
+    isPremium: false,
     colors: {
       primary: '#a855f7',
       secondary: '#22d3ee',
@@ -255,7 +255,7 @@ export const themes: Record<string, Theme> = {
     id: 'deepOcean',
     name: 'Deep Ocean',
     description: 'Calming oceanic blues and teals',
-    isPremium: true,
+    isPremium: false,
     colors: {
       primary: '#0ea5e9',
       secondary: '#14b8a6',
@@ -297,7 +297,7 @@ export const themes: Record<string, Theme> = {
     id: 'goldenSunset',
     name: 'Golden Sunset',
     description: 'Warm gradients inspired by sunset',
-    isPremium: true,
+    isPremium: false,
     colors: {
       primary: '#f97316',
       secondary: '#ec4899',
